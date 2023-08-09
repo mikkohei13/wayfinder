@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Monitor</title>
+    <style>
+        #fileList img {
+            width: 90%;
+            padding-top: 5em;
+        }
+        #fileList p {
+            position: absolute;
+        }
+    </style>
+    <script>
+    function updateFiles() {
+        fetch('/get_files')
+            .then(response => response.json())
+            .then(files => {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+
+//            const file = files[0]; // Get the first file
+            const file = files[files.length - 1]; // Get the last file
+
+            const photo_div = document.createElement('div');
+            const link = document.createElement('a');
+            const image = document.createElement('img');
+            link.href = `/files/${file}`;
+            image.src = `/files/${file}`;
+
+            link.appendChild(image); // Appends the image inside the link
+            photo_div.appendChild(link); // Appends the link inside the photo_div
+
+            const data_file = "/files/" + file + ".json";
+            fetch(data_file)
+                .then(response => response.json())
+                .then(data => {
+                const info = document.createElement('p');
+                info.innerHTML = data.best_species + ' ' + data.best_species_probability + '<br>' + data.best_genus + ' ' + data.best_genus_probability;
+                photo_div.appendChild(info); // Appends the info inside the photo_div
+                })
+                .catch(error => console.error('There was an error!', error));
+
+            fileList.appendChild(photo_div); // Appends the photo_div to the parent container
+            });
+    }
+
+
+        setInterval(updateFiles, 3000);
+    </script>
+</head>
+<body>
+    <h1>Monitored Files</h1>
+    <div id="fileList"></div>
+</body>
+</html>

@@ -14,6 +14,10 @@ monitor_dir = config['monitor_dir']
 def index():
     return render_template('index.html')
 
+@app.route('/latest')
+def latest():
+    return render_template('latest.html')
+
 # Returns a json list of files
 @app.route('/get_files')
 def get_files():

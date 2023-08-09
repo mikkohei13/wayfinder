@@ -8,6 +8,7 @@ App that suggest identificatons for photos of organisms
     python3 -m venv .venv
     source .venv/bin/activate
     pip install -r requirements.txt
+    Set secrets to secrets.json
 
 # Statup
 
