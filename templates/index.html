@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Monitor</title>
+    <script>
+        function updateFiles() {
+            fetch('/get_files')
+                .then(response => response.json())
+                .then(files => {
+                    const fileList = document.getElementById('fileList');
+                    fileList.innerHTML = '';
+                    files.forEach(file => {
+                        const listItem = document.createElement('li');
+                        const link = document.createElement('a');
+                        link.href = `/files/${file}`;
+                        link.textContent = file;
+                        listItem.appendChild(link);
+                        fileList.appendChild(listItem);
+                    });
+                });
+        }
+
+        setInterval(updateFiles, 1000);
+    </script>
+</head>
+<body>
+    <h1>Monitored Files</h1>
+    <ul id="fileList"></ul>
+</body>
+</html>
