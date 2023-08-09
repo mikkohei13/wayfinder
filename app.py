@@ -1,6 +1,6 @@
 from flask import Flask, render_template, send_from_directory, jsonify
-import os
 import json
+import helpers
 
 # Load the configuration
 with open('secrets.json', 'r') as file:
@@ -14,11 +14,15 @@ monitor_dir = config['monitor_dir']
 def index():
     return render_template('index.html')
 
+# Returns a json list of files
 @app.route('/get_files')
 def get_files():
-    files = [f for f in os.listdir(monitor_dir) if os.path.isfile(os.path.join(monitor_dir, f))]
+    print("--")
+    helpers.get_identifications(monitor_dir)
+    files = helpers.get_photo_list(monitor_dir)
     return jsonify(files)
 
+# Shows a file from mounted dir over Flask
 @app.route('/files/<path:filename>')
 def download_file(filename):
     return send_from_directory(monitor_dir, filename)
