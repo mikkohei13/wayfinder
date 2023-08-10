@@ -43,10 +43,16 @@
                         .then(response => response.json())
                         .then(data => {
                         const info = document.createElement('p');
-                        info.innerHTML = data.best_species + ' ' + data.best_species_probability + '<br>' + data.best_genus + ' ' + data.best_genus_probability;
+
+                        // Use html generated on backend
+                        info.innerHTML = data.html;
+
+                        // Generate html here on frontend
+//                        info.innerHTML = data.best_species + ' ' + data.best_species_probability + '<br>' + data.best_genus + ' ' + data.best_genus_probability;
+
                         photo_div.appendChild(info); // Appends the info inside the photo_div
-                        })
-                        .catch(error => console.error('There was an error!', error));
+                    })
+                    .catch(error => console.error('There was an error!', error));
 
                     fileList.appendChild(photo_div); // Appends the photo_div to the parent container
 
