@@ -1,8 +1,13 @@
 
 import os
 import json
+import requests
 
 import naturalis_api
+
+# Load the configuration
+with open('secrets.json', 'r') as file:
+    config = json.load(file)
 
 
 def get_photo_list(dir_path):
@@ -16,7 +21,41 @@ def get_photo_list(dir_path):
 
 
 def create_html(data_dict):
-    html = f"Hoi { data_dict['best_species'] }!"
+    # Note: html will be wrapped in a <p>
+    print(data_dict)
+
+    url = f"https://api.laji.fi/v0/taxa/{ data_dict['taxon_id'] }?lang=fi&langFallback=true&maxLevel=0&includeHidden=false&includeMedia=false&includeDescriptions=false&includeRedListEvaluations=false&sortOrder=taxonomic&access_token="
+    taxon_data = fetch_finbif_api(url)
+    print(taxon_data)
+
+    if data_dict["best_species_probability"] >= 0.993:
+        css_class = "highprob"
+    elif css_class <= 0.7:
+        css_class = "lowprob"
+    else:
+        css_class = "medprob"
+
+    vernacular_name = taxon_data.get('vernacularName', 'ei suomenkielistä nimeä')
+    fin_obs_count = taxon_data.get('occurrenceCountFinland', 0)
+
+    if "typeOfOccurrenceInFinland" in taxon_data:
+        fin_occurrence_type = ", ".join(taxon_data["typeOfOccurrenceInFinland"])
+    else:
+        fin_occurrence_type = "ei esiintymistietoa"
+    
+    species_page_url = f"https://laji.fi/taxon/{ data_dict['taxon_id'] }"
+
+    parent_order = taxon_data["parent"]["order"]["scientificName"]
+    parent_class = taxon_data["parent"]["class"]["scientificName"]
+
+    html = (
+        f"{ parent_class }: { parent_order }:<br>\n"
+        f"<strong class='{ css_class }'>{ vernacular_name } <em>{ data_dict['best_species'] }</em> - { data_dict['best_species_probability'] }</strong><br>\n"
+        f"{ fin_obs_count } havaintoa Suomesta, { fin_occurrence_type } (<a href='{ species_page_url }' target='_blank'>lajisivu</a>)<br>\n"
+        f"&nbsp;<br>\n"
+        f"<em>{ data_dict['best_genus'] }</em> - { data_dict['best_genus_probability'] }\n"
+    )
+
     return html
 
 
@@ -42,6 +81,7 @@ def get_identifications(dir_path):
                 data_dict['best_species_probability'] = best_species_probability
                 data_dict['best_genus'] = best_genus
                 data_dict['best_genus_probability'] = best_genus_probability
+                data_dict['taxon_id'] = taxon_id
                 data_dict['response_dict'] = response_dict
 
                 data_dict['html'] = create_html(data_dict)
@@ -55,3 +95,52 @@ def get_identifications(dir_path):
             else:
                 print(f"Data exists for { filename }")
 
+
+def fetch_finbif_api(api_url, log = False):
+    if "&access_token=" not in api_url:
+        print("DEV WARNING: access_token param is missing from your url!")
+
+    api_url = api_url + config["finbif_token"]
+    print("Fetching API: " + api_url)
+
+    if log:
+        print(api_url)
+
+    try:
+        r = requests.get(api_url)
+    except ConnectionError:
+        print("ERROR: api.laji.fi complete error.")
+
+#    r.encoding = encoding
+    dataJson = r.text
+    dataDict = json.loads(dataJson)
+
+    if "status" in dataDict:
+        if 403 == dataDict["status"]:
+            print("ERROR: api.laji.fi 403 error.")
+            raise ConnectionError
+
+#    print(dataDict)
+    return dataDict
+
+
+def fetch_api(api_url, log = False):
+    if log:
+        print(api_url)
+
+    try:
+        r = requests.get(api_url)
+    except ConnectionError:
+        print("ERROR: api.laji.fi complete error.")
+
+#    r.encoding = encoding
+    dataJson = r.text
+    dataDict = json.loads(dataJson)
+
+    if "status" in dataDict:
+        if 403 == dataDict["status"]:
+            print("ERROR: api.laji.fi 403 error.")
+            raise ConnectionError
+
+#    print(dataDict)
+    return dataDict
