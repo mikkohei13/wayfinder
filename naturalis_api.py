@@ -94,6 +94,16 @@ def naturalis_id(image_path, real_data):
     best_genus, best_genus_probability = best_genus_dict
     best_genus_probability = round(best_genus_probability, 6)
 
+    # Taxon id
+    if "scientific_name_id" in response_dict['predictions'][0]['taxa']['items'][0]:
+        taxon_id_raw = response_dict['predictions'][0]['taxa']['items'][0]['scientific_name_id']
+        if "FINBIF:" in taxon_id_raw:
+            taxon_id = taxon_id_raw.replace("FINBIF:", "")
+        else:
+            taxon_id = False
+    else:
+        taxon_id = False
+
     print("Successful identification")
 
-    return best_species, best_species_probability, best_genus, best_genus_probability, response_dict
+    return best_species, best_species_probability, best_genus, best_genus_probability, taxon_id, response_dict
