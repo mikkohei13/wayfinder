@@ -48,20 +48,24 @@
                     photo_div.appendChild(link); // Appends the link inside the photo_div
 
                     const data_file = "/files/" + file + ".json";
-                    fetch(data_file)
-                        .then(response => response.json())
-                        .then(data => {
-                        const info = document.createElement('p');
 
-                        // Use html generated on backend
-                        info.innerHTML = data.html;
+                    // timeout to wait for the result to build
+                    setTimeout(function() {
+                        fetch(data_file)
+                            .then(response => response.json())
+                            .then(data => {
+                            const info = document.createElement('p');
 
-                        // Generate html here on frontend
-//                        info.innerHTML = data.best_species + ' ' + data.best_species_probability + '<br>' + data.best_genus + ' ' + data.best_genus_probability;
+                            // Use html generated on backend
+                            info.innerHTML = data.html;
 
-                        photo_div.appendChild(info); // Appends the info inside the photo_div
-                    })
-                    .catch(error => console.error('There was an error!', error));
+                            // Generate html here on frontend
+    //                        info.innerHTML = data.best_species + ' ' + data.best_species_probability + '<br>' + data.best_genus + ' ' + data.best_genus_probability;
+
+                            photo_div.appendChild(info); // Appends the info inside the photo_div
+                        })
+                        .catch(error => console.error('There was an error!', error));
+                    }, 2000);
 
                     fileList.appendChild(photo_div); // Appends the photo_div to the parent container
 

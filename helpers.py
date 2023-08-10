@@ -22,39 +22,49 @@ def get_photo_list(dir_path):
 
 def create_html(data_dict):
     # Note: html will be wrapped in a <p>
-    print(data_dict)
-
-    url = f"https://api.laji.fi/v0/taxa/{ data_dict['taxon_id'] }?lang=fi&langFallback=true&maxLevel=0&includeHidden=false&includeMedia=false&includeDescriptions=false&includeRedListEvaluations=false&sortOrder=taxonomic&access_token="
-    taxon_data = fetch_finbif_api(url)
-    print(taxon_data)
+#    print(data_dict)
 
     if data_dict["best_species_probability"] >= 0.993:
         css_class = "highprob"
-    elif css_class <= 0.7:
+    elif data_dict["best_species_probability"] <= 0.8:
         css_class = "lowprob"
     else:
         css_class = "medprob"
 
-    vernacular_name = taxon_data.get('vernacularName', 'ei suomenkielistä nimeä')
-    fin_obs_count = taxon_data.get('occurrenceCountFinland', 0)
+    if data_dict['taxon_id']:
 
-    if "typeOfOccurrenceInFinland" in taxon_data:
-        fin_occurrence_type = ", ".join(taxon_data["typeOfOccurrenceInFinland"])
+        url = f"https://api.laji.fi/v0/taxa/{ data_dict['taxon_id'] }?lang=fi&langFallback=true&maxLevel=0&includeHidden=false&includeMedia=false&includeDescriptions=false&includeRedListEvaluations=false&sortOrder=taxonomic&access_token="
+        taxon_data = fetch_finbif_api(url)
+        print(taxon_data)
+
+        vernacular_name = taxon_data.get('vernacularName', 'ei suomenkielistä nimeä')
+        fin_obs_count = taxon_data.get('occurrenceCountFinland', 0)
+
+        if "typeOfOccurrenceInFinland" in taxon_data:
+            fin_occurrence_type = ", ".join(taxon_data["typeOfOccurrenceInFinland"])
+        else:
+            fin_occurrence_type = "ei esiintymistietoa"
+        
+        species_page_url = f"https://laji.fi/taxon/{ data_dict['taxon_id'] }"
+
+        parent_order = taxon_data["parent"]["order"]["scientificName"]
+        parent_class = taxon_data["parent"]["class"]["scientificName"]
+
+        html = (
+            f"{ parent_class }: { parent_order }:<br>\n"
+            f"<strong class='{ css_class }'>{ vernacular_name } <em>{ data_dict['best_species'] }</em> - { data_dict['best_species_probability'] }</strong><br>\n"
+            f"{ fin_obs_count } havaintoa Suomesta, { fin_occurrence_type } (<a href='{ species_page_url }' target='_blank'>lajisivu</a>)<br>\n"
+            f"&nbsp;<br>\n"
+            f"<em>{ data_dict['best_genus'] }</em> - { data_dict['best_genus_probability'] }\n"
+        )
+
     else:
-        fin_occurrence_type = "ei esiintymistietoa"
-    
-    species_page_url = f"https://laji.fi/taxon/{ data_dict['taxon_id'] }"
-
-    parent_order = taxon_data["parent"]["order"]["scientificName"]
-    parent_class = taxon_data["parent"]["class"]["scientificName"]
-
-    html = (
-        f"{ parent_class }: { parent_order }:<br>\n"
-        f"<strong class='{ css_class }'>{ vernacular_name } <em>{ data_dict['best_species'] }</em> - { data_dict['best_species_probability'] }</strong><br>\n"
-        f"{ fin_obs_count } havaintoa Suomesta, { fin_occurrence_type } (<a href='{ species_page_url }' target='_blank'>lajisivu</a>)<br>\n"
-        f"&nbsp;<br>\n"
-        f"<em>{ data_dict['best_genus'] }</em> - { data_dict['best_genus_probability'] }\n"
-    )
+        html = (
+            f"<strong class='{ css_class }'><em>{ data_dict['best_species'] }</em> - { data_dict['best_species_probability'] }</strong><br>\n"
+            f"EI TAKSONIN ID:ta"
+            f"&nbsp;<br>\n"
+            f"<em>{ data_dict['best_genus'] }</em> - { data_dict['best_genus_probability'] }\n"
+        )
 
     return html
 
@@ -71,7 +81,7 @@ def get_identifications(dir_path):
             if not os.path.exists(full_data_path):
                 full_path = os.path.join(dir_path, filename)
 
-                best_species, best_species_probability, best_genus, best_genus_probability, taxon_id, response_dict = naturalis_api.naturalis_id(full_path, False) # False = mock data, True = real data 
+                best_species, best_species_probability, best_genus, best_genus_probability, taxon_id, response_dict = naturalis_api.naturalis_id(full_path, True) # False = mock data, True = real data 
 
                 print("Debug:")
                 print(best_species, best_species_probability, best_genus, best_genus_probability, taxon_id, response_dict)
