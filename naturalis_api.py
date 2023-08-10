@@ -17,44 +17,64 @@ def get_genus(taxon):
     return parts[0]
 
 
-def naturalis_id(image_path):
+def naturalis_id(image_path, real_data):
 
-    username = config['naturalis_username']
-    password = config['naturalis_password']
-    token = config['naturalis_token']
-    url = config['naturalis_url'] + token
+    # Get real data from Naturalis API
+    if real_data:
+        username = config['naturalis_username']
+        password = config['naturalis_password']
+        token = config['naturalis_token']
+        url = config['naturalis_url'] + token
 
-    # Read the image file in binary mode
-    with open(image_path, "rb") as image_file:
-        # Prepare the data for the POST request
-        files = {
-            "image": (image_path, image_file, "image/jpeg")
-        }
-        params = {
-#            'force_submodel': 'Plantae',
-#            "taxon_namespace": "FINBIF",
-            "autozoom_enabled": 0
-        }
-        print(files, params)
-        
-        response = requests.post(
-            url,
-            files=files,
-            data=params,
-            auth=HTTPBasicAuth(username, password)
-        )
+        # Read the image file in binary mode
+        with open(image_path, "rb") as image_file:
+            # Prepare the data for the POST request
+            files = {
+                "image": (image_path, image_file, "image/jpeg")
+            }
+            params = {
+    #            'force_submodel': 'Plantae',
+    #            "taxon_namespace": "FINBIF",
+                "autozoom_enabled": 0
+            }
+            print(files, params)
+            
+            response = requests.post(
+                url,
+                files=files,
+                data=params,
+                auth=HTTPBasicAuth(username, password)
+            )
 
-        # Check if the request was successful
-        if response.status_code == 200:
-            # Convert the response JSON to a dictionary
-            print(response.text) # DEBUG
-            response_dict = json.loads(response.text)   
-        else:
-            print(f"Error: {response.status_code}")
-            json_data = response.json()
-            pretty_json = json.dumps(json_data, indent=4, sort_keys=True)
-            print(pretty_json)
-            exit()
+            # Check if the request was successful
+            if response.status_code == 200:
+                # Convert the response JSON to a dictionary
+    #            print(response.text) # DEBUG
+
+    # For saving data for mock usage
+                with open('./local_files/test2.json', 'w') as file:
+                    file.write(response.text)
+
+                response_dict = json.loads(response.text)
+            else:
+                print(f"Error: {response.status_code}")
+                json_data = response.json()
+                pretty_json = json.dumps(json_data, indent=4, sort_keys=True)
+                print(pretty_json)
+                exit()
+
+    # Get mock data
+    else:
+        with open('./local_files/test2.json', 'r') as f:
+#            response_dict = json.load(f)
+            content = f.read()
+            response_dict = json.loads(content)
+
+            print("HERE HERE HERE")
+            print(response_dict['predictions'])
+
+#            print(response_dict)
+
 
     # Best match
     best_species = response_dict['predictions'][0]['taxa']['items'][0]['scientific_name']

@@ -28,7 +28,7 @@ def get_identifications(dir_path):
                 print(f"GETTING DATA FOR { filename }...")
                 full_path = os.path.join(dir_path, filename)
 
-                best_species, best_species_probability, best_genus, best_genus_probability, response_dict = naturalis_api.naturalis_id(full_path)
+                best_species, best_species_probability, best_genus, best_genus_probability, response_dict = naturalis_api.naturalis_id(full_path, False) # False = mock data, True = real data 
 
                 print("Here shall be data")
                 print(best_species, best_species_probability, best_genus, best_genus_probability, response_dict)
